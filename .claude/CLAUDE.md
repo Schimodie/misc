@@ -115,6 +115,24 @@ Key test classes include:
 - `AlbumTest` - Tests for album entity
 - `StorageFileNameTest` - Tests for file naming utilities
 
+## Code Style Guidelines
+
+### Import Conventions
+- **Always use fully qualified imports** - Never use wildcard imports (e.g., `import java.util.*;`)
+- **Import individual classes explicitly** - Each import should specify exactly one class
+- **Static imports must be fully qualified** - Static methods and fields should be imported individually
+- Example:
+  ```java
+  // Good
+  import java.util.List;
+  import java.util.Map;
+  import static java.util.stream.Collectors.toList;
+  
+  // Bad
+  import java.util.*;
+  import static java.util.stream.Collectors.*;
+  ```
+
 ## Important Notes
 
 - The application requires network access to fetch data from Metalstorm and LastFM APIs
