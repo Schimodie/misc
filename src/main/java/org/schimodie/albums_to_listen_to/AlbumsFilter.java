@@ -3,7 +3,7 @@ package org.schimodie.albums_to_listen_to;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.schimodie.albums_to_listen_to.bean.Album;
 import org.schimodie.albums_to_listen_to.client.LastFMClient;
-import org.schimodie.common.Tuple2;
+import org.schimodie.common.data.Tuple2;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -5,23 +5,37 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class StorageFileName {
-    private static final String FILE_PART_SEPARATOR = "-";
-    private static final DateTimeFormatter DT_FORMATTER = new DateTimeFormatterBuilder()
+    public static final DateTimeFormatter DT_FORMATTER = new DateTimeFormatterBuilder()
             .appendPattern("yyyy-MM-dd")
             .parseDefaulting(ChronoField.NANO_OF_DAY, 0)
             .toFormatter()
             .withZone(ZoneOffset.UTC);
 
+    private static final String FILE_PART_SEPARATOR = "-";
+
     private StorageFileName() {
     }
 
-    public static String createFileName(String filePrefix, Instant date) {
-        return createFileName(filePrefix, DT_FORMATTER.format(date));
+    public static String createFileName(Object... fileParts) {
+        return String.format("%s.json",
+                Arrays.stream(fileParts)
+                        .map(StorageFileName::cast)
+                        .collect(Collectors.joining(FILE_PART_SEPARATOR)));
     }
 
-    public static String createFileName(String... fileParts) {
-        return String.format("%s.json", String.join(FILE_PART_SEPARATOR, fileParts));
+    private static String cast(Object object) {
+        if (object == null) {
+            return "null";
+        } else if (object instanceof String) {
+            return (String) object;
+        } else if (object instanceof Instant) {
+            return DT_FORMATTER.format((Instant) object);
+        }
+
+        return object.toString();
     }
 }

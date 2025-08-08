@@ -6,6 +6,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.schimodie.albums_to_listen_to.bean.Album;
+import org.schimodie.common.utils.ExponentialBackoffRetryable;
+import org.schimodie.common.utils.Retryable;
 
 import java.io.IOException;
 import java.net.CookieStore;
@@ -19,6 +21,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public class MetalstormClient {
+    private static final Retryable<Document> RETRY_STRATEGY = new ExponentialBackoffRetryable<>(5, 1000);
     private static final Map<String, String> DEFAULT_HEADERS = Map.ofEntries(
             Map.entry("Connection", "keep-alive"),
             Map.entry("DNT", "1"),

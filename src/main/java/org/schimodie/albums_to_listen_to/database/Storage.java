@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Storage {
-    private static final String ALBUMS_SERDE_DIR = "/Users/radug/db/metalstorm-lastfm-spotify-playlist";
+    private static final String ALBUMS_SERDE_DIR = "/home/schimodie/Code/Java/misc/db/metalstorm-lastfm-spotify-playlist";
 
     private Storage() {
     }

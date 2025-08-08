@@ -1,6 +1,6 @@
 package org.schimodie.random;
 
-import org.schimodie.common.Tuple2;
+import org.schimodie.common.data.Tuple2;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
