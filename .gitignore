@@ -73,7 +73,6 @@ ehthumbs.db
 db/
 metalstorm_cookies.json
 .serena/
-.claude/
 
 # Temporary files
 *.tmp
