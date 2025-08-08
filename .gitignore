@@ -79,3 +79,6 @@ metalstorm_cookies.json
 *.bak
 *.swp
 *~.nib
+
+# Symbolic link to .claude/CLAUDE.md
+# CLAUDE.md

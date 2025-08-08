@@ -121,3 +121,85 @@ Key test classes include:
 - Preview features are required for Java 24 language features
 - Data persistence uses the local file system under the `db/` directory
 - The Metalstorm client implements cookie-based session management
+
+## Startup Checklist
+
+MUST execute on project activation: Run `bash ls -la .claude/` to scan .claude (NEVER use LS tool for .claude)
+
+## File Exploration Directives
+
+ALWAYS follow this tool hierarchy:
+
+### For Code Navigation:
+
+- **Java files**: MUST use Serena `find_symbol` with name_path, NEVER read entire files
+- **Finding classes/methods**: Serena `get_symbols_overview` → `find_symbol` with depth=1 → `include_body=true`
+- **Finding references**: Serena `find_referencing_symbols` instead of grep
+- **Pattern search in code**: Serena `search_for_pattern` with `restrict_search_to_code_files=true`
+
+### For File Discovery:
+
+- **Pattern matching**: Glob for `*.java`, `**/*.xml` patterns
+- **Directory listing**: Bash `ls -la` for all files
+- **Config files** (pom.xml, properties): Read directly, don't use Serena
+
+### NEVER:
+
+- Use LS on .claude directory
+- Read entire Java files when symbols suffice
+- Use grep/find in Bash when Serena/Glob available
+
+## MCP Tool Directives
+
+### Semgrep (Security)
+
+- ALWAYS run `security_check` BEFORE commits
+- MUST run when: adding dependencies, creating endpoints, handling uploads, database operations
+- Run `semgrep_scan` with config="p/security" for comprehensive checks
+
+### Context7 (Documentation)
+
+- ALWAYS use BEFORE implementing Jackson serialization
+- MUST use when: working with JSoup selectors, Lombok annotations, JUnit 5 features
+- To `get-library-docs` you MUST check @.claude/library-ids.md for library-ids; if missing:
+    - `resolve-library-id` then append `{library}: {library-id}` to the file
+
+### IntelliJ IDEA (IDE Operations)
+
+- PREFER `execute_run_configuration` over `mvn test` for single test runs
+- MUST use `rename_refactoring` for symbol renames (not find-replace)
+- USE `get_file_problems` before commits to catch compilation errors
+- USE `get_project_modules` when exploring project structure
+
+### GitHub (Repository)
+
+- ALWAYS use for: PRs (`create_pull_request`), issues (`create_issue`), reviews
+- MUST use `search_code` for cross-repo searches, not local grep
+- USE `list_workflow_runs` to check CI status after pushes
+
+### Serena (Semantic Analysis)
+
+- PRIMARY tool for Java code exploration
+- ALWAYS use instead of Read for understanding code structure
+- MUST use `replace_symbol_body` for method rewrites
+- USE `insert_after_symbol`/`insert_before_symbol` for adding methods/imports
+
+## Testing & Security Checklist
+
+### Before ANY Code Changes:
+
+1. Run `mvn test` to ensure baseline passes
+2. Use IntelliJ `get_file_problems` on target files
+
+### After Code Changes:
+
+1. Run Semgrep `security_check` on modified files
+2. Execute `mvn test -Dtest=<AffectedTestClass>`
+3. Run `mvn compile` to catch compilation errors
+
+### Before Commits:
+
+1. MUST run full `mvn test`
+2. MUST run Semgrep security scan
+3. Check IntelliJ `get_project_problems` for warnings
+4. Verify no secrets in code (search for "password", "key", "token")
