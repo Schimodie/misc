@@ -54,7 +54,7 @@ mvn exec:java -Dexec.mainClass="org.schimodie.albums_to_listen_to.Main" -Dexec.a
     - `AlbumsFilter` - Filters albums into good/bad categories based on criteria
     - `AlbumList` - Manages and sorts album collections by votes and priority
     - **client/** - Web scraping clients
-        - `MetalstormClient` - JSoup-based scraper for Metalstorm with retry logic and cookie management
+        - `MetalstormClient` - Playwright-based browser automation for Metalstorm with retry logic, manages Browser/BrowserContext lifecycle, CSS selectors as constants
         - `LastFMClient` - Client for LastFM API integration
     - **database/** - Persistence layer
         - `Storage` - Handles JSON serialization/deserialization of albums to/from local files
@@ -90,30 +90,42 @@ mvn exec:java -Dexec.mainClass="org.schimodie.albums_to_listen_to.Main" -Dexec.a
 - **Build Tool**: Maven
 - **Dependencies**:
     - Jackson (2.19.2) - JSON processing
-    - JSoup (1.21.1) - HTML parsing and web scraping
+    - Jackson JSR310 (2.19.2) - Java time/date serialization
+    - Playwright (1.40.0) - Browser automation for web scraping
+    - JSoup (1.21.1) - HTML parsing
     - Lombok (1.18.38) - Code generation (compile-time only)
     - JUnit Jupiter (5.13.4) - Unit testing
+    - AssertJ (3.27.3) - Fluent assertion library (test only)
+    - Mockito (5.18.0) - Mocking framework with JUnit 5 integration (test only)
     - Jakarta XML Bind API (4.0.2) - XML binding
 
 - **Data Storage**:
     - JSON files stored in `db/metalstorm-lastfm-spotify-playlist/` directory
     - File naming convention uses dates and descriptive prefixes via `StorageFileName` utility
 
+- **Web Scraping**:
+    - Playwright for browser automation (headless Chromium)
+    - Dynamic content handling with automatic wait strategies
+    - CSS selectors extracted as constants for maintainability
+    - Browser context manages session state and cookies
+
 - **API Integration**:
-    - Metalstorm client includes retry logic with exponential backoff
-    - Cookie management for session handling
+    - Metalstorm client uses Playwright browser automation with retry logic and exponential backoff
+    - Browser context manages cookies/session automatically
+    - CSS selectors for dynamic content extraction
     - Custom headers for API requests
 
 - **Date Handling**: Uses `Instant` and custom date formatters for date-based filtering
 
 ## Testing
 
-The project uses JUnit 5 for testing. Test files are located in `src/test/java/` with corresponding package structure.
+The project uses JUnit 5 with AssertJ assertions and Mockito for mocking. Test files are located in `src/test/java/` with corresponding package structure.
 Key test classes include:
 
 - `AlbumListTest` - Tests for album list management
 - `AlbumTest` - Tests for album entity
 - `StorageFileNameTest` - Tests for file naming utilities
+- `MetalstormClientTest` - Tests for Playwright browser automation, album parsing, and date extraction
 
 ## Code Style Guidelines
 
@@ -138,7 +150,9 @@ Key test classes include:
 - The application requires network access to fetch data from Metalstorm and LastFM APIs
 - Preview features are required for Java 24 language features
 - Data persistence uses the local file system under the `db/` directory
-- The Metalstorm client implements cookie-based session management
+- Playwright automatically downloads Chromium browser binaries on first run
+- Web scraping runs in headless browser mode (no GUI required)
+- Browser lifecycle is managed via AutoCloseable pattern
 
 ## Startup Checklist
 
