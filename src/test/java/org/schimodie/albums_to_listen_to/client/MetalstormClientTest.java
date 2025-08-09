@@ -34,9 +34,28 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.schimodie.albums_to_listen_to.client.MetalstormClient.ALBUM_DATE_SELECTOR;
+import static org.schimodie.albums_to_listen_to.client.MetalstormClient.ALBUM_ROWS_SELECTOR;
 
 @ExtendWith(MockitoExtension.class)
 class MetalstormClientTest {
+    // Test constants
+    private static final String BASE_URL = "https://metalstorm.net/";
+    private static final String FILTER_URL = BASE_URL + "bands/albums.php?filter_show_invisible=1&show_invisible_submit=1";
+    private static final String ALBUMS_PAGE_URL = BASE_URL + "bands/albums.php?page=";
+    private static final String ALBUM_DETAIL_URL = BASE_URL + "bands/album.php?album_id=";
+    private static final String TD_SELECTOR = "td";
+    private static final String A_SELECTOR = "a";
+    private static final String TEST_ARTIST = "Test Artist";
+    private static final String TEST_ALBUM = "Test Album";
+    private static final String ARTIST_ONE = "Artist One";
+    private static final String ARTIST_TWO = "Artist Two";
+    private static final String FULL_LENGTH = "Full-length";
+    private static final String METAL = "Metal";
+    private static final String INVALID = "invalid";
+    private static final String BAND_HREF = "band.php?band_id=";
+    private static final String ALBUM_HREF = "album.php?album_id=";
+    
     private static MockedStatic<Playwright> mockedPlaywrightStatic;
 
     @Mock
@@ -92,7 +111,7 @@ class MetalstormClientTest {
     private ElementHandle createMockAlbumRow() {
         ElementHandle mockRow = mock(ElementHandle.class);
         List<ElementHandle> columns = createMockColumns();
-        when(mockRow.querySelectorAll("td")).thenReturn(columns);
+        when(mockRow.querySelectorAll(TD_SELECTOR)).thenReturn(columns);
         return mockRow;
     }
 
@@ -103,8 +122,8 @@ class MetalstormClientTest {
                 mock(ElementHandle.class), // column 1
                 createMockArtistAlbumColumn(), // column 2 - artist/album
                 mock(ElementHandle.class), // column 3
-                createMockColumn("Full-length"), // column 4 - type
-                createMockColumn("Metal"), // column 5 - genre
+                createMockColumn(FULL_LENGTH), // column 4 - type
+                createMockColumn(METAL), // column 5 - genre
                 createMockRatingColumn(), // column 6 - rating
                 createMockColumn("50") // column 7 - votes
         );
@@ -114,14 +133,14 @@ class MetalstormClientTest {
         ElementHandle column = mock(ElementHandle.class);
 
         ElementHandle artistLink = mock(ElementHandle.class);
-        when(artistLink.getAttribute("href")).thenReturn("band.php?band_id=12345");
-        when(artistLink.innerText()).thenReturn("Test Artist");
+        when(artistLink.getAttribute("href")).thenReturn(BAND_HREF + "12345");
+        when(artistLink.innerText()).thenReturn(TEST_ARTIST);
 
         ElementHandle albumLink = mock(ElementHandle.class);
-        when(albumLink.getAttribute("href")).thenReturn("album.php?album_id=67890");
-        when(albumLink.innerText()).thenReturn("Test Album");
+        when(albumLink.getAttribute("href")).thenReturn(ALBUM_HREF + "67890");
+        when(albumLink.innerText()).thenReturn(TEST_ALBUM);
 
-        when(column.querySelectorAll("a")).thenReturn(List.of(artistLink, albumLink));
+        when(column.querySelectorAll(A_SELECTOR)).thenReturn(List.of(artistLink, albumLink));
         return column;
     }
 
@@ -129,7 +148,7 @@ class MetalstormClientTest {
         ElementHandle column = mock(ElementHandle.class);
         ElementHandle ratingLink = mock(ElementHandle.class);
         when(ratingLink.innerText()).thenReturn("8.5");
-        when(column.querySelectorAll("a")).thenReturn(List.of(ratingLink));
+        when(column.querySelectorAll(A_SELECTOR)).thenReturn(List.of(ratingLink));
         return column;
     }
 
@@ -146,7 +165,7 @@ class MetalstormClientTest {
                 mock(ElementHandle.class),
                 mock(ElementHandle.class)  // Only 3 columns, need at least 8
         );
-        when(mockRow.querySelectorAll("td")).thenReturn(insufficientColumns);
+        when(mockRow.querySelectorAll(TD_SELECTOR)).thenReturn(insufficientColumns);
         return mockRow;
     }
 
@@ -158,16 +177,16 @@ class MetalstormClientTest {
                 mock(ElementHandle.class), mock(ElementHandle.class),
                 mock(ElementHandle.class), mock(ElementHandle.class), mock(ElementHandle.class)
         );
-        when(mockRow.querySelectorAll("td")).thenReturn(columns);
+        when(mockRow.querySelectorAll(TD_SELECTOR)).thenReturn(columns);
         return mockRow;
     }
 
     private ElementHandle createMockColumnWithOnlyArtist() {
         ElementHandle column = mock(ElementHandle.class);
         ElementHandle artistLink = mock(ElementHandle.class);
-        when(artistLink.getAttribute("href")).thenReturn("band.php?band_id=12345");
-        when(artistLink.innerText()).thenReturn("Test Artist");
-        when(column.querySelectorAll("a")).thenReturn(List.of(artistLink));
+        when(artistLink.getAttribute("href")).thenReturn(BAND_HREF + "12345");
+        when(artistLink.innerText()).thenReturn(TEST_ARTIST);
+        when(column.querySelectorAll(A_SELECTOR)).thenReturn(List.of(artistLink));
         return column;
     }
 
@@ -175,18 +194,18 @@ class MetalstormClientTest {
         ElementHandle mockRow = mock(ElementHandle.class);
         List<ElementHandle> columns = List.of(
                 mock(ElementHandle.class), mock(ElementHandle.class), createMockArtistAlbumColumn(),
-                mock(ElementHandle.class), createMockColumn("Full-length"), createMockColumn("Metal"),
+                mock(ElementHandle.class), createMockColumn(FULL_LENGTH), createMockColumn(METAL),
                 createMockInvalidRatingColumn(), createMockColumn("50")
         );
-        when(mockRow.querySelectorAll("td")).thenReturn(columns);
+        when(mockRow.querySelectorAll(TD_SELECTOR)).thenReturn(columns);
         return mockRow;
     }
 
     private ElementHandle createMockInvalidRatingColumn() {
         ElementHandle column = mock(ElementHandle.class);
         ElementHandle ratingLink = mock(ElementHandle.class);
-        when(ratingLink.innerText()).thenReturn("invalid");
-        when(column.querySelectorAll("a")).thenReturn(List.of(ratingLink));
+        when(ratingLink.innerText()).thenReturn(INVALID);
+        when(column.querySelectorAll(A_SELECTOR)).thenReturn(List.of(ratingLink));
         return column;
     }
 
@@ -194,10 +213,10 @@ class MetalstormClientTest {
         ElementHandle mockRow = mock(ElementHandle.class);
         List<ElementHandle> columns = List.of(
                 mock(ElementHandle.class), mock(ElementHandle.class), createMockArtistAlbumColumn(),
-                mock(ElementHandle.class), createMockColumn("Full-length"), createMockColumn("Metal"),
-                createMockRatingColumn(), createMockColumn("invalid")
+                mock(ElementHandle.class), createMockColumn(FULL_LENGTH), createMockColumn(METAL),
+                createMockRatingColumn(), createMockColumn(INVALID)
         );
-        when(mockRow.querySelectorAll("td")).thenReturn(columns);
+        when(mockRow.querySelectorAll(TD_SELECTOR)).thenReturn(columns);
         return mockRow;
     }
 
@@ -208,12 +227,12 @@ class MetalstormClientTest {
                 mock(ElementHandle.class), // column 1
                 createMockArtistAlbumColumnWithMultipleArtists(), // column 2 - multiple artists/album
                 mock(ElementHandle.class), // column 3
-                createMockColumn("Full-length"), // column 4 - type
-                createMockColumn("Metal"), // column 5 - genre
+                createMockColumn(FULL_LENGTH), // column 4 - type
+                createMockColumn(METAL), // column 5 - genre
                 createMockRatingColumn(), // column 6 - rating
                 createMockColumn("50") // column 7 - votes
         );
-        when(mockRow.querySelectorAll("td")).thenReturn(columns);
+        when(mockRow.querySelectorAll(TD_SELECTOR)).thenReturn(columns);
         return mockRow;
     }
 
@@ -221,18 +240,18 @@ class MetalstormClientTest {
         ElementHandle column = mock(ElementHandle.class);
 
         ElementHandle artist1Link = mock(ElementHandle.class);
-        when(artist1Link.getAttribute("href")).thenReturn("band.php?band_id=11111");
-        when(artist1Link.innerText()).thenReturn("Artist One");
+        when(artist1Link.getAttribute("href")).thenReturn(BAND_HREF + "11111");
+        when(artist1Link.innerText()).thenReturn(ARTIST_ONE);
 
         ElementHandle artist2Link = mock(ElementHandle.class);
-        when(artist2Link.getAttribute("href")).thenReturn("band.php?band_id=22222");
-        when(artist2Link.innerText()).thenReturn("Artist Two");
+        when(artist2Link.getAttribute("href")).thenReturn(BAND_HREF + "22222");
+        when(artist2Link.innerText()).thenReturn(ARTIST_TWO);
 
         ElementHandle albumLink = mock(ElementHandle.class);
-        when(albumLink.getAttribute("href")).thenReturn("album.php?album_id=67890");
-        when(albumLink.innerText()).thenReturn("Test Album");
+        when(albumLink.getAttribute("href")).thenReturn(ALBUM_HREF + "67890");
+        when(albumLink.innerText()).thenReturn(TEST_ALBUM);
 
-        when(column.querySelectorAll("a")).thenReturn(List.of(artist1Link, artist2Link, albumLink));
+        when(column.querySelectorAll(A_SELECTOR)).thenReturn(List.of(artist1Link, artist2Link, albumLink));
         return column;
     }
 
@@ -243,12 +262,12 @@ class MetalstormClientTest {
                 mock(ElementHandle.class), // column 1
                 createMockArtistAlbumColumn(), // column 2 - artist/album
                 mock(ElementHandle.class), // column 3
-                createMockColumn("Full-length"), // column 4 - type
-                createMockColumn("Metal"), // column 5 - genre
+                createMockColumn(FULL_LENGTH), // column 4 - type
+                createMockColumn(METAL), // column 5 - genre
                 createMockZeroRatingColumn(), // column 6 - rating
                 createMockColumn("0") // column 7 - votes
         );
-        when(mockRow.querySelectorAll("td")).thenReturn(columns);
+        when(mockRow.querySelectorAll(TD_SELECTOR)).thenReturn(columns);
         return mockRow;
     }
 
@@ -256,7 +275,7 @@ class MetalstormClientTest {
         ElementHandle column = mock(ElementHandle.class);
         ElementHandle ratingLink = mock(ElementHandle.class);
         when(ratingLink.innerText()).thenReturn("0.0");
-        when(column.querySelectorAll("a")).thenReturn(List.of(ratingLink));
+        when(column.querySelectorAll(A_SELECTOR)).thenReturn(List.of(ratingLink));
         return column;
     }
 
@@ -281,8 +300,7 @@ class MetalstormClientTest {
             // Given
             int pageNumber = 1;
             ElementHandle mockRow = createMockAlbumRow();
-            when(mockPage.querySelectorAll(".table > tbody:nth-child(2) > tr")).thenReturn(List.of(mockRow));
-            when(mockPage.waitForSelector(".table > tbody:nth-child(2) > tr")).thenReturn(mock(ElementHandle.class));
+            when(mockPage.querySelectorAll(ALBUM_ROWS_SELECTOR)).thenReturn(List.of(mockRow));
 
             // When
             List<Album> albums = metalstormClient.getAlbums(pageNumber);
@@ -290,13 +308,13 @@ class MetalstormClientTest {
             // Then
             assertThat(albums).hasSize(1);
             Album album = albums.getFirst();
-            assertThat(album.getAlbum()).isEqualTo("Test Album");
-            assertThat(album.getArtists()).isEqualTo(List.of("Test Artist"));
-            assertThat(album.getGenre()).isEqualTo("Metal");
+            assertThat(album.getAlbum()).isEqualTo(TEST_ALBUM);
+            assertThat(album.getArtists()).isEqualTo(List.of(TEST_ARTIST));
+            assertThat(album.getGenre()).isEqualTo(METAL);
             assertThat(album.getRating()).isCloseTo(8.5, withinPercentage(0.1));
             assertThat(album.getVotes()).isEqualTo(50);
 
-            verify(mockPage).navigate("https://metalstorm.net/bands/albums.php?page=" + pageNumber);
+            verify(mockPage).navigate(ALBUMS_PAGE_URL + pageNumber);
         }
 
         @Test
@@ -304,8 +322,7 @@ class MetalstormClientTest {
         void testGetAlbumsHandlesEmptyPage() {
             // Given
             int pageNumber = 999;
-            when(mockPage.querySelectorAll(".table > tbody:nth-child(2) > tr")).thenReturn(List.of());
-            when(mockPage.waitForSelector(".table > tbody:nth-child(2) > tr")).thenReturn(mock(ElementHandle.class));
+            when(mockPage.querySelectorAll(ALBUM_ROWS_SELECTOR)).thenReturn(List.of());
 
             // When
             List<Album> albums = metalstormClient.getAlbums(pageNumber);
@@ -318,16 +335,14 @@ class MetalstormClientTest {
         @DisplayName("should set filter on first call")
         void testGetAlbumsSetFilterOnFirstCall() {
             // Given
-            when(mockPage.querySelectorAll(".table > tbody:nth-child(2) > tr")).thenReturn(List.of());
-            when(mockPage.waitForSelector(".table > tbody:nth-child(2) > tr")).thenReturn(mock(ElementHandle.class));
+            when(mockPage.querySelectorAll(ALBUM_ROWS_SELECTOR)).thenReturn(List.of());
 
             // When
             metalstormClient.getAlbums(1);
 
             // Then - verify filter URL was called first
-            verify(mockPage).navigate(
-                    "https://metalstorm.net/bands/albums.php?filter_show_invisible=1&show_invisible_submit=1");
-            verify(mockPage).navigate("https://metalstorm.net/bands/albums.php?page=1");
+            verify(mockPage).navigate(FILTER_URL);
+            verify(mockPage).navigate(ALBUMS_PAGE_URL + "1");
         }
 
         @Test
@@ -337,8 +352,7 @@ class MetalstormClientTest {
             int pageNumber = 1;
             ElementHandle mockRow1 = createMockAlbumRow();
             ElementHandle mockRow2 = createMockAlbumRow();
-            when(mockPage.querySelectorAll(".table > tbody:nth-child(2) > tr")).thenReturn(List.of(mockRow1, mockRow2));
-            when(mockPage.waitForSelector(".table > tbody:nth-child(2) > tr")).thenReturn(mock(ElementHandle.class));
+            when(mockPage.querySelectorAll(ALBUM_ROWS_SELECTOR)).thenReturn(List.of(mockRow1, mockRow2));
 
             // When
             List<Album> albums = metalstormClient.getAlbums(pageNumber);
@@ -346,14 +360,14 @@ class MetalstormClientTest {
             // Then
             assertThat(albums).hasSize(2);
             albums.forEach(album -> {
-                assertThat(album.getAlbum()).isEqualTo("Test Album");
-                assertThat(album.getArtists()).isEqualTo(List.of("Test Artist"));
-                assertThat(album.getGenre()).isEqualTo("Metal");
+                assertThat(album.getAlbum()).isEqualTo(TEST_ALBUM);
+                assertThat(album.getArtists()).isEqualTo(List.of(TEST_ARTIST));
+                assertThat(album.getGenre()).isEqualTo(METAL);
                 assertThat(album.getRating()).isCloseTo(8.5, withinPercentage(0.1));
                 assertThat(album.getVotes()).isEqualTo(50);
             });
 
-            verify(mockPage).navigate("https://metalstorm.net/bands/albums.php?page=" + pageNumber);
+            verify(mockPage).navigate(ALBUMS_PAGE_URL + pageNumber);
         }
 
         @Test
@@ -361,8 +375,7 @@ class MetalstormClientTest {
         void testGetAlbumsHandlesInvalidRowStructure() {
             // Given
             ElementHandle mockRow = createMockRowWithInsufficientColumns();
-            when(mockPage.querySelectorAll(".table > tbody:nth-child(2) > tr")).thenReturn(List.of(mockRow));
-            when(mockPage.waitForSelector(".table > tbody:nth-child(2) > tr")).thenReturn(mock(ElementHandle.class));
+            when(mockPage.querySelectorAll(ALBUM_ROWS_SELECTOR)).thenReturn(List.of(mockRow));
 
             // When & Then
             assertThatThrownBy(() -> metalstormClient.getAlbums(1))
@@ -375,8 +388,7 @@ class MetalstormClientTest {
         void testGetAlbumsHandlesMissingAlbumLink() {
             // Given
             ElementHandle mockRow = createMockRowWithMissingAlbum();
-            when(mockPage.querySelectorAll(".table > tbody:nth-child(2) > tr")).thenReturn(List.of(mockRow));
-            when(mockPage.waitForSelector(".table > tbody:nth-child(2) > tr")).thenReturn(mock(ElementHandle.class));
+            when(mockPage.querySelectorAll(ALBUM_ROWS_SELECTOR)).thenReturn(List.of(mockRow));
 
             // When & Then
             assertThatThrownBy(() -> metalstormClient.getAlbums(1))
@@ -389,8 +401,7 @@ class MetalstormClientTest {
         void testGetAlbumsHandlesInvalidRating() {
             // Given
             ElementHandle mockRow = createMockRowWithInvalidRating();
-            when(mockPage.querySelectorAll(".table > tbody:nth-child(2) > tr")).thenReturn(List.of(mockRow));
-            when(mockPage.waitForSelector(".table > tbody:nth-child(2) > tr")).thenReturn(mock(ElementHandle.class));
+            when(mockPage.querySelectorAll(ALBUM_ROWS_SELECTOR)).thenReturn(List.of(mockRow));
 
             // When
             List<Album> albums = metalstormClient.getAlbums(1);
@@ -405,8 +416,7 @@ class MetalstormClientTest {
         void testGetAlbumsHandlesInvalidVotes() {
             // Given
             ElementHandle mockRow = createMockRowWithInvalidVotes();
-            when(mockPage.querySelectorAll(".table > tbody:nth-child(2) > tr")).thenReturn(List.of(mockRow));
-            when(mockPage.waitForSelector(".table > tbody:nth-child(2) > tr")).thenReturn(mock(ElementHandle.class));
+            when(mockPage.querySelectorAll(ALBUM_ROWS_SELECTOR)).thenReturn(List.of(mockRow));
 
             // When
             List<Album> albums = metalstormClient.getAlbums(1);
@@ -422,17 +432,16 @@ class MetalstormClientTest {
             // Given
             int pageNumber = 1;
             ElementHandle mockRow = createMockAlbumRow();
-            when(mockPage.querySelectorAll(".table > tbody:nth-child(2) > tr")).thenReturn(List.of(mockRow));
-            when(mockPage.waitForSelector(".table > tbody:nth-child(2) > tr")).thenReturn(mock(ElementHandle.class));
+            when(mockPage.querySelectorAll(ALBUM_ROWS_SELECTOR)).thenReturn(List.of(mockRow));
 
             // Expected Album using Album.builder() with all fields
             Album expectedAlbum = Album.builder()
-                    .album("Test Album")
-                    .artists(List.of("Test Artist"))
+                    .album(TEST_ALBUM)
+                    .artists(List.of(TEST_ARTIST))
                     .artistIds(List.of("12345"))
                     .albumId("67890")
-                    .genre("Metal")
-                    .type("Full-length")
+                    .genre(METAL)
+                    .type(FULL_LENGTH)
                     .rating(8.5)
                     .votes(50)
                     // Note: date field is not set by getAlbums, only by getAlbumDate
@@ -449,7 +458,7 @@ class MetalstormClientTest {
             // Date is null for getAlbums - only getAlbumDate sets it
             assertThat(actualAlbum.getDate()).isNull();
 
-            verify(mockPage).navigate("https://metalstorm.net/bands/albums.php?page=" + pageNumber);
+            verify(mockPage).navigate(ALBUMS_PAGE_URL + pageNumber);
         }
 
         @Test
@@ -458,8 +467,7 @@ class MetalstormClientTest {
             // Given
             int pageNumber = 1;
             ElementHandle mockRow = createMockAlbumRowWithMultipleArtists();
-            when(mockPage.querySelectorAll(".table > tbody:nth-child(2) > tr")).thenReturn(List.of(mockRow));
-            when(mockPage.waitForSelector(".table > tbody:nth-child(2) > tr")).thenReturn(mock(ElementHandle.class));
+            when(mockPage.querySelectorAll(ALBUM_ROWS_SELECTOR)).thenReturn(List.of(mockRow));
 
             // When
             List<Album> albums = metalstormClient.getAlbums(pageNumber);
@@ -467,7 +475,7 @@ class MetalstormClientTest {
             // Then
             assertThat(albums).hasSize(1);
             Album album = albums.getFirst();
-            assertThat(album.getArtists()).containsExactly("Artist One", "Artist Two");
+            assertThat(album.getArtists()).containsExactly(ARTIST_ONE, ARTIST_TWO);
             assertThat(album.getArtistIds()).containsExactly("11111", "22222");
             assertThat(album.getAlbumId()).isEqualTo("67890");
         }
@@ -478,8 +486,7 @@ class MetalstormClientTest {
             // Given
             int pageNumber = 1;
             ElementHandle mockRow = createMockAlbumRowWithZeroValues();
-            when(mockPage.querySelectorAll(".table > tbody:nth-child(2) > tr")).thenReturn(List.of(mockRow));
-            when(mockPage.waitForSelector(".table > tbody:nth-child(2) > tr")).thenReturn(mock(ElementHandle.class));
+            when(mockPage.querySelectorAll(ALBUM_ROWS_SELECTOR)).thenReturn(List.of(mockRow));
 
             // When
             List<Album> albums = metalstormClient.getAlbums(pageNumber);
@@ -502,10 +509,8 @@ class MetalstormClientTest {
             String albumId = "12345";
             ElementHandle mockDateElement = mock(ElementHandle.class);
             when(mockDateElement.innerText()).thenReturn("15 November 2024");
-            when(mockPage.querySelector(
-                    ".right-col > table:nth-child(2) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(2)"))
+            when(mockPage.querySelector(ALBUM_DATE_SELECTOR))
                     .thenReturn(mockDateElement);
-            when(mockPage.waitForSelector(anyString())).thenReturn(mock(ElementHandle.class));
 
             // When
             Instant result = metalstormClient.getAlbumDate(albumId);
@@ -513,7 +518,7 @@ class MetalstormClientTest {
             // Then
             Instant expected = Instant.parse("2024-11-15T00:00:00Z");
             assertThat(result).isEqualTo(expected);
-            verify(mockPage).navigate("https://metalstorm.net/bands/album.php?album_id=" + albumId);
+            verify(mockPage).navigate(ALBUM_DETAIL_URL + albumId);
         }
 
         @Test
@@ -522,7 +527,6 @@ class MetalstormClientTest {
             // Given
             String albumId = "12345";
             when(mockPage.querySelector(anyString())).thenReturn(null);
-            when(mockPage.waitForSelector(anyString())).thenReturn(mock(ElementHandle.class));
 
             // When & Then
             assertThatThrownBy(() -> metalstormClient.getAlbumDate(albumId))
@@ -539,14 +543,13 @@ class MetalstormClientTest {
             ElementHandle mockDateElement = mock(ElementHandle.class);
             when(mockDateElement.innerText()).thenReturn(dateString);
             when(mockPage.querySelector(anyString())).thenReturn(mockDateElement);
-            when(mockPage.waitForSelector(anyString())).thenReturn(mock(ElementHandle.class));
 
             // When
             Instant result = metalstormClient.getAlbumDate(albumId);
 
             // Then
             assertThat(result).isNotNull();
-            verify(mockPage).navigate("https://metalstorm.net/bands/album.php?album_id=" + albumId);
+            verify(mockPage).navigate(ALBUM_DETAIL_URL + albumId);
         }
 
         @Test
@@ -557,7 +560,6 @@ class MetalstormClientTest {
             ElementHandle mockDateElement = mock(ElementHandle.class);
             when(mockDateElement.innerText()).thenReturn("25 December 2023");
             when(mockPage.querySelector(anyString())).thenReturn(mockDateElement);
-            when(mockPage.waitForSelector(anyString())).thenReturn(mock(ElementHandle.class));
 
             // When
             Instant result = metalstormClient.getAlbumDate(albumId);
@@ -569,7 +571,7 @@ class MetalstormClientTest {
                     .isEqualTo(expected);
 
             // Verify the correct navigation occurred
-            verify(mockPage).navigate("https://metalstorm.net/bands/album.php?album_id=" + albumId);
+            verify(mockPage).navigate(ALBUM_DETAIL_URL + albumId);
         }
     }
 

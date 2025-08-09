@@ -19,6 +19,10 @@ import java.util.List;
 import java.util.Map;
 
 public class MetalstormClient implements AutoCloseable {
+    static final String ALBUM_DATE_SELECTOR =
+            ".right-col > table:nth-child(2) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(2)";
+    static final String ALBUM_ROWS_SELECTOR = ".table > tbody:nth-child(2) > tr";
+
     private static final Retryable<String> RETRY_STRATEGY = new ExponentialBackoffRetryable<>(5, 1000);
     private static final Map<String, String> DEFAULT_HEADERS = Map.ofEntries(
             Map.entry("Connection", "keep-alive"),
@@ -30,8 +34,6 @@ public class MetalstormClient implements AutoCloseable {
             Map.entry("TE", "trailers"),
             Map.entry("Upgrade-Insecure-Requests", "1"));
     private static final String USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0";
-    private static final String ALBUM_DATE_CSS_QUERY =
-            ".right-col > table:nth-child(2) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(2)";
     private static final String ROOT_URL = "https://metalstorm.net/";
     private static final DateTimeFormatter DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
             .appendPattern("d MMMM yyyy")
@@ -135,16 +137,17 @@ public class MetalstormClient implements AutoCloseable {
     }
 
     public List<Album> getAlbums(int pageNumber) {
-        if (!hasFilterBeenSet) {
-            navigateToUrl(ROOT_URL + "bands/albums.php?filter_show_invisible=1&show_invisible_submit=1");
-            hasFilterBeenSet = true;
-        }
-
         try (Page page = context.newPage()) {
-            navigateToUrl(ROOT_URL + "bands/albums.php?page=" + pageNumber);
-            page.waitForSelector(".table > tbody:nth-child(2) > tr");
+            if (!hasFilterBeenSet) {
+                page.navigate(ROOT_URL + "bands/albums.php?filter_show_invisible=1&show_invisible_submit=1");
+                page.waitForLoadState();
+                hasFilterBeenSet = true;
+            }
 
-            List<ElementHandle> albumRows = page.querySelectorAll(".table > tbody:nth-child(2) > tr");
+            page.navigate(ROOT_URL + "bands/albums.php?page=" + pageNumber);
+            page.waitForLoadState();
+
+            List<ElementHandle> albumRows = page.querySelectorAll(ALBUM_ROWS_SELECTOR);
             List<Album> albums = albumRows.stream()
                     .map(MetalstormClient::createAlbum)
                     .toList();
@@ -160,22 +163,14 @@ public class MetalstormClient implements AutoCloseable {
 
     public Instant getAlbumDate(String albumId) {
         try (Page page = context.newPage()) {
-            navigateToUrl(ROOT_URL + "bands/album.php?album_id=" + albumId);
-            page.waitForSelector(ALBUM_DATE_CSS_QUERY);
-
-            ElementHandle dateElement = page.querySelector(ALBUM_DATE_CSS_QUERY);
-            if (dateElement != null) {
-                String dateText = dateElement.innerText();
-                return DATE_TIME_FORMATTER.parse(dateText, Instant::from);
-            }
-            throw new RuntimeException("Couldn't parse album date");
-        }
-    }
-
-    private void navigateToUrl(String url) {
-        try (Page page = context.newPage()) {
-            page.navigate(url);
+            page.navigate(ROOT_URL + "bands/album.php?album_id=" + albumId);
             page.waitForLoadState();
+            
+            ElementHandle dateElement = page.querySelector(ALBUM_DATE_SELECTOR);
+            if (dateElement == null) {
+                throw new RuntimeException("Couldn't parse album date");
+            }
+            return Instant.from(DATE_TIME_FORMATTER.parse(dateElement.innerText()));
         }
     }
 
