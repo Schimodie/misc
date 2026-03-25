@@ -19,7 +19,7 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        Instant afterDate = Instant.from(DT_FORMATTER.parse("2025-01-01")).minus(14, ChronoUnit.DAYS);
+        Instant afterDate = Instant.from(DT_FORMATTER.parse("2026-01-01")).minus(14, ChronoUnit.DAYS);
         Instant today = Instant.from(DT_FORMATTER.parse("2026-03-25"));
         String filteredAlbumsFileName = StorageFileName.createFileName(
                 "filtered-albums-on", today, "from", afterDate);

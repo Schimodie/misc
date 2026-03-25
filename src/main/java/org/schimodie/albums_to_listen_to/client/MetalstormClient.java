@@ -23,7 +23,8 @@ import java.util.Optional;
 public class MetalstormClient implements AutoCloseable {
     static final String ALBUM_DATE_SELECTOR =
             ".right-col > table:nth-child(2) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(2)";
-    static final String ALBUM_ROWS_SELECTOR = ".discography-album .right-col .album-title-row";
+    static final String ALBUM_ROWS_SELECTOR = "#page-content .cbox.mb-4 table.table-striped > tbody > tr";
+    static final String FILTER_BUTTON_SELECTOR = ".g-2 > div:nth-child(2) > button:nth-child(1)";
 
     private static final Retryable<String> RETRY_STRATEGY = new ExponentialBackoffRetryable<>(5, 1000);
     private static final Map<String, String> DEFAULT_HEADERS = Map.ofEntries(
@@ -55,62 +56,46 @@ public class MetalstormClient implements AutoCloseable {
                 new Browser.NewContextOptions().setUserAgent(USER_AGENT).setExtraHTTPHeaders(DEFAULT_HEADERS));
     }
 
-    private static Album createAlbum(ElementHandle albumTitleRow) {
-        ElementHandle albumTitle = albumTitleRow.querySelector(".album-title");
-        List<ElementHandle> artistAndAlbumLinks = albumTitle.querySelectorAll(".megatitle a");
-        List<ElementHandle> darkSpans = albumTitle.querySelectorAll("span.dark");
-        ElementHandle albumRating = albumTitleRow.querySelector(".album-rating");
+    private static Album createAlbum(ElementHandle albumRow) {
+        ElementHandle contentCell = albumRow.querySelector("td.w-100");
+        List<ElementHandle> artistLinks = contentCell.querySelectorAll("a[href*='band_id']");
+        ElementHandle albumLink = contentCell.querySelector("a[href*='album_id']");
+        ElementHandle ratingCol = contentCell.querySelector("[data-bs-title]");
+        ElementHandle typeSpan = contentCell.querySelector(".col-lg-2 span.dark:not(.d-md-none)");
+        ElementHandle genreCol = contentCell.querySelector(".col-lg-3");
+        ElementHandle dateSpan = albumRow.querySelector("td.d-none.d-md-table-cell .megatitle > span.dark:last-of-type");
 
         return Album.builder()
-                .artists(artistAndAlbumLinks.stream().
-                        filter(anchor -> {
-                            String href = anchor.getAttribute("href");
-                            return href != null && href.matches("/bands/band.php\\?band_id=[0-9]+");
-                        })
+                .artists(artistLinks.stream()
                         .map(ElementHandle::innerText)
                         .toList())
-                .artistIds(artistAndAlbumLinks.stream()
-                        .filter(anchor -> {
-                            String href = anchor.getAttribute("href");
-                            return href != null && href.matches("/bands/band.php\\?band_id=[0-9]+");
-                        })
-                        .map(anchor -> {
-                            String href = anchor.getAttribute("href");
-                            return href.split("=")[1];
-                        })
+                .artistIds(artistLinks.stream()
+                        .map(anchor -> anchor.getAttribute("href").split("=")[1])
                         .toList())
-                .album(artistAndAlbumLinks.stream()
-                        .filter(anchor -> {
-                            String href = anchor.getAttribute("href");
-                            return href != null && href.matches("/bands/album.php\\?album_id=[0-9]+");
-                        })
+                .album(albumLink.innerText())
+                .albumId(albumLink.getAttribute("href").split("=")[1])
+                .date(Instant.from(DATE_TIME_FORMATTER.parse(
+                        dateSpan.innerText().replaceAll("\\s+", " ").trim())))
+                .type(typeSpan != null
+                        ? typeSpan.innerText().replaceAll("[\\[\\]]", "").trim()
+                        : "Studio")
+                .genres(genreCol != null
+                        ? Arrays.stream(genreCol.innerText().split(","))
+                                .map(String::trim)
+                                .filter(s -> !s.isEmpty())
+                                .toList()
+                        : List.of())
+                .rating(Optional.ofNullable(ratingCol)
+                        .map(col -> col.querySelector("span.bold"))
                         .map(ElementHandle::innerText)
-                        .findFirst()
-                        .orElseThrow(() -> new RuntimeException("Couldn't find the album")))
-                .albumId(artistAndAlbumLinks.stream()
-                        .filter(anchor -> {
-                            String href = anchor.getAttribute("href");
-                            return href != null && href.matches("/bands/album.php\\?album_id=[0-9]+");
-                        })
-                        .map(anchor -> {
-                            String href = anchor.getAttribute("href");
-                            return href.split("=")[1];
-                        })
-                        .findFirst()
-                        .orElseThrow(() -> new RuntimeException("Couldn't find the albumId")))
-                .date(Instant.from(DATE_TIME_FORMATTER.parse(darkSpans.getLast().innerText())))
-                .type(darkSpans.size() > 1 ? darkSpans.getFirst().innerText().replaceAll("[\\[\\]]", "") : "Studio")
-                .genres(Arrays.stream(albumTitleRow.querySelector("div:nth-child(2) > span").innerText().split(","))
                         .map(String::trim)
-                        .toList())
-                .rating(Optional.ofNullable(albumRating.querySelector(".megarating"))
-                        .map(ElementHandle::innerText)
+                        .filter(s -> !s.isEmpty())
                         .map(Double::parseDouble)
                         .orElse(0.0))
-                .votes(Optional.ofNullable(albumRating.querySelector(".votes_num"))
-                        .map(ElementHandle::innerText)
-                        .map(votes -> votes.replaceAll("votes?", ""))
-                        .map(String::trim)
+                .votes(Optional.ofNullable(ratingCol)
+                        .map(col -> col.getAttribute("data-bs-title"))
+                        .map(tooltip -> tooltip.replaceAll("[^0-9]", ""))
+                        .filter(s -> !s.isEmpty())
                         .map(Integer::parseInt)
                         .orElse(0))
                 .build();
@@ -123,7 +108,7 @@ public class MetalstormClient implements AutoCloseable {
 
                 page.navigate(url);
                 page.waitForLoadState();
-                page.click(".g-2 > div:nth-child(2) > button:nth-child(1)");
+                page.click(FILTER_BUTTON_SELECTOR);
                 page.waitForLoadState();
 
                 hasFilterBeenSet = true;
