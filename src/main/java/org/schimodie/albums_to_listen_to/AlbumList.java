@@ -9,7 +9,7 @@ import java.util.Objects;
 
 public record AlbumList(List<Album> albums) {
     private static final Comparator<Album> PRIORITY_COMPARATOR =
-            (a1, a2) -> (int) Math.signum(a1.computePriorityRating() - a2.computePriorityRating());
+            (a1, a2) -> (int) Math.signum(a1.getScore() - a2.getScore());
 
     public AlbumList(List<Album> albums) {
         this.albums = new ArrayList<>(Objects.requireNonNull(albums, "'albums' should not be null"));
@@ -25,10 +25,10 @@ public record AlbumList(List<Album> albums) {
     }
 
     public List<Album> getHighPriorityAlbums() {
-        return albums.stream().filter(album -> album.computePriorityRating() >= 8.0).toList();
+        return albums.stream().filter(album -> album.getScore() >= 8.0).toList();
     }
 
     public List<Album> getLowPriorityAlbums() {
-        return albums.stream().filter(album -> album.computePriorityRating() < 8.0).toList();
+        return albums.stream().filter(album -> album.getScore() < 8.0).toList();
     }
 }
