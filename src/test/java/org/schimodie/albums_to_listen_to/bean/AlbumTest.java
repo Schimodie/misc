@@ -16,13 +16,8 @@ class AlbumTest {
     @ParameterizedTest
     @MethodSource("computeScoreSource")
     void computeScore(double rating, int votes, double expectedScore) {
-        assertEquals(expectedScore, Album.computeScore(rating, votes), DOUBLE_DELTA);
-    }
-
-    @Test
-    void builderAutoComputesScore() {
-        Album album = Album.builder().rating(7.5).votes(70).build();
-        assertEquals(8.0, album.getScore(), DOUBLE_DELTA);
+        Album album = Album.builder().rating(rating).votes(votes).build();
+        assertEquals(expectedScore, album.getScore(), DOUBLE_DELTA);
     }
 
     private static Stream<Arguments> computeScoreSource() {

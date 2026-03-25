@@ -60,12 +60,18 @@ public class Album {
 
     public double getScore() {
         if (score < 1.0) {
-            score = computeScore(rating, votes);
+            score = computeScore();
         }
         return score;
     }
 
-    public static double computeScore(double rating, int votes) {
+    @Override
+    @SneakyThrows
+    public String toString() {
+        return OM.writeValueAsString(this);
+    }
+
+    private double computeScore() {
         if (votes < MIN_VOTES_FOR_BOOST) {
             return Math.round(rating * 1000.0) / 1000.0;
         }
@@ -80,11 +86,5 @@ public class Album {
     @SneakyThrows
     public static Album from(String string) {
         return OM.readValue(string.trim(), Album.class);
-    }
-
-    @Override
-    @SneakyThrows
-    public String toString() {
-        return OM.writeValueAsString(this);
     }
 }
