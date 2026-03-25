@@ -26,7 +26,7 @@ public class AlbumsFilter {
     public Tuple2<List<Album>, List<Album>> filter() {
         problemAlbums.clear();
         List<Album> filteredList = albums.stream()
-                .filter(album -> !album.getGenre().contains("grind")
+                .filter(album -> !album.getGenres().contains("grind")
                         && (album.getType().equalsIgnoreCase("studio") || album.getType().equalsIgnoreCase("ep")))
                 .filter(AlbumsFilter::filterByRatingAndVotes)
                 .filter(this::filterByNoListensOnLastFM)

@@ -28,13 +28,6 @@ public class LastFMClient {
     private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    private final String authToken;
-
-    public LastFMClient() {
-        // authToken = getJsonResponse(makeParameters("auth.gettoken")).get("token").asText();
-        authToken = "";
-    }
-
     public JsonNode getAlbumInfo(String artist, String album) {
         return getAlbumInfo(artist, album, "Schimodie");
     }

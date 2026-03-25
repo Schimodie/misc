@@ -6,6 +6,7 @@ import org.schimodie.albums_to_listen_to.database.StorageFileName;
 import org.schimodie.common.data.Tuple2;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 
@@ -18,8 +19,8 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        Instant afterDate = Instant.from(DT_FORMATTER.parse("2025-06-29"));
-        Instant today = Instant.from(DT_FORMATTER.parse("2025-08-08"));
+        Instant afterDate = Instant.from(DT_FORMATTER.parse("2025-01-01")).minus(14, ChronoUnit.DAYS);
+        Instant today = Instant.from(DT_FORMATTER.parse("2026-03-25"));
         String filteredAlbumsFileName = StorageFileName.createFileName(
                 "filtered-albums-on", today, "from", afterDate);
         List<Album> albums;

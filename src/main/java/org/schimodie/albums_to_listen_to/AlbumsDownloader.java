@@ -32,8 +32,7 @@ public class AlbumsDownloader {
 
             do {
                 albums.addAll(msClient.getAlbums(page++));
-                dateOfLastAlbumOnThePage = msClient.getAlbumDate(albums.getLast().getAlbumId());
-                albums.getLast().setDate(dateOfLastAlbumOnThePage);
+                dateOfLastAlbumOnThePage = albums.getLast().getDate();
             } while (dateOfLastAlbumOnThePage.isAfter(afterDate) || dateOfLastAlbumOnThePage.equals(afterDate));
 
             Storage.writeAlbums(albums, fileName);
